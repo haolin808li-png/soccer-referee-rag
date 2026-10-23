@@ -1,0 +1,24 @@
+recommended:
+  gpu: NVIDIA L40S 48GB
+  count: 1
+  disk_gb: 150
+  image: nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+  use_cases: [batch_inference, qlora_training, evaluation]
+budget_option:
+  gpu: NVIDIA RTX 4090 24GB
+  count: 1
+  disk_gb: 120
+  adjustments:
+    frames_per_view: 8
+    max_views: 3
+    max_seq_length: 1536
+    gradient_accumulation_steps: 32
+robust_option:
+  gpu: NVIDIA A100 80GB
+  count: 1
+  disk_gb: 200
+security:
+  dataset_is_nda_restricted: true
+  encrypt_volume: true
+  delete_volume_after_download: true
+  never_publish_raw_clips: true

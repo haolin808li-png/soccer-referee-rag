@@ -1,0 +1,82 @@
+project: referee_ai_mvfouls
+seed: 2026
+paths:
+  train_manifest: data/metadata/mvfouls_train_manifest.jsonl
+  valid_manifest: data/metadata/mvfouls_valid_manifest.jsonl
+  test_manifest: data/metadata/mvfouls_test_manifest.jsonl
+  semantics_dir: artifacts/semantics
+  rules: data/rules/ifab_law12.jsonl
+  rule_index: artifacts/rule_index
+  runs: artifacts/runs
+
+video:
+  model_id: Qwen/Qwen3-VL-8B-Instruct
+  frames_per_view: 16
+  frame_window: [0.40, 0.72]
+  max_views: 4
+  load_in_4bit: true
+  dtype: bfloat16
+  trust_remote_code: false
+
+semantics:
+  schema_version: "1.0"
+  temperature: 0.0
+  max_new_tokens: 768
+  per_view_then_fuse: true
+  evidence_agreement: true
+  abstain_threshold: 0.45
+
+rag:
+  retrieval: hybrid
+  top_k_bm25: 8
+  top_k_dense: 8
+  top_k_final: 5
+  dense_model: BAAI/bge-m3
+  reranker_model: BAAI/bge-reranker-v2-m3
+  require_citations: true
+
+decision:
+  model_id: Qwen/Qwen3-8B-Instruct
+  temperature: 0.0
+  confidence_calibration: evidence_agreement
+  allow_abstention: true
+
+training:
+  model_id: Qwen/Qwen3-VL-8B-Instruct
+  method: qlora
+  quantization: nf4
+  compute_dtype: bfloat16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  learning_rate: 0.0001
+  epochs: 3
+  per_device_batch_size: 1
+  gradient_accumulation_steps: 16
+  gradient_checkpointing: true
+  max_seq_length: 2048
+  save_steps: 100
+  eval_steps: 100
+  early_stopping_patience: 3
+  resume_from_checkpoint: null
+  report_to: none
+
+experiments:
+  - name: text_only_no_rag
+    video_semantics: ground_truth
+    rag: false
+  - name: auto_semantics_no_rag
+    video_semantics: automatic
+    rag: false
+  - name: auto_semantics_rag
+    video_semantics: automatic
+    rag: true
+  - name: verified_semantics_rag
+    video_semantics: human_verified
+    rag: true
+  - name: shuffled_rules_control
+    video_semantics: automatic
+    rag: shuffled
+  - name: counterfactual_facts
+    video_semantics: counterfactual
+    rag: true

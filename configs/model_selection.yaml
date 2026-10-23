@@ -1,0 +1,48 @@
+project: mvfouls_video_semantics_rag
+
+primary_model:
+  id: Qwen/Qwen3-VL-8B-Instruct
+  role: final_video_semantics_and_qlora_model
+  license: Apache-2.0
+  execution: cuda_gpu
+
+development_model:
+  id: Qwen/Qwen3-VL-4B-Instruct
+  role: local_prompt_schema_and_pipeline_validation
+  license: Apache-2.0
+  execution: apple_silicon_quantized_or_remote_gpu
+
+comparison_baseline:
+  id: llava-hf/LLaVA-NeXT-Video-7B-hf
+  role: historical_video_vlm_baseline
+  license: llama2
+  execution: cuda_gpu
+
+video_input:
+  frames_per_view: 16
+  temporal_window_seconds: 1.0
+  views: all_available
+  per_view_processing: true
+  event_level_fusion: structured_semantic_fusion
+
+generation:
+  output_format: json
+  temperature: 0.0
+  do_sample: false
+  max_new_tokens: 768
+
+training:
+  method: qlora
+  quantization: nf4_4bit
+  trainable_modules:
+    - language_model_lora
+    - multimodal_projector
+  initially_frozen_modules:
+    - vision_encoder
+  required_hardware: nvidia_cuda_gpu
+
+notes:
+  - The local machine is an Apple M3 MacBook Air with 24 GB unified memory.
+  - Use the 4B model for local development; run 8B QLoRA on CUDA hardware.
+  - Do not fine-tune on the 301-event official test split.
+  - Download and use the official train and validation splits before QLoRA.
